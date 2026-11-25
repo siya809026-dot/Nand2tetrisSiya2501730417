@@ -1,0 +1,18 @@
+// Memory.hdl - Nand to Tetris Project 5
+// Student: Siya Singh (Roll: 2501730417, K=17)
+// K.R. Mangalam University - ETCMTC301 Capstone
+
+CHIP Memory {
+    IN in[16], load, address[15];
+    OUT out[16];
+
+    PARTS:
+    DMux4Way(in=load, sel=address[13..14], a=loadRAM1, b=loadRAM2, c=loadScreen, d=loadKBD);
+    Or(a=loadRAM1, b=loadRAM2, out=loadRAM);
+
+    RAM16K(in=in, load=loadRAM, address=address[0..13], out=outRAM);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=outScreen);
+    Keyboard(out=outKBD);
+
+    Mux4Way16(a=outRAM, b=outRAM, c=outScreen, d=outKBD, sel=address[13..14], out=out);
+}

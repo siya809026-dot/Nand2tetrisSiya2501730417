@@ -1,0 +1,32 @@
+// ALU.hdl - Nand to Tetris Project 2
+// Student: Siya Singh (Roll: 2501730417, K=17)
+// K.R. Mangalam University - ETCMTC301 Capstone
+
+CHIP ALU {
+    IN  
+        x[16], y[16],
+        zx, nx, zy, ny, f, no;
+    OUT 
+        out[16], zr, ng;
+
+    PARTS:
+    Mux16(a=x, b=false, sel=zx, out=x1);
+    Not16(in=x1, out=notx1);
+    Mux16(a=x1, b=notx1, sel=nx, out=x2);
+
+    Mux16(a=y, b=false, sel=zy, out=y1);
+    Not16(in=y1, out=noty1);
+    Mux16(a=y1, b=noty1, sel=ny, out=y2);
+
+    Add16(a=x2, b=y2, out=addOut);
+    And16(a=x2, b=y2, out=andOut);
+    Mux16(a=andOut, b=addOut, sel=f, out=fOut);
+
+    Not16(in=fOut, out=notFOut);
+    Mux16(a=fOut, b=notFOut, sel=no, out=out, out[0..7]=lowOut, out[8..15]=highOut, out[15]=ng);
+
+    Or8Way(in=lowOut, out=orLow);
+    Or8Way(in=highOut, out=orHigh);
+    Or(a=orLow, b=orHigh, out=anyNonZero);
+    Not(in=anyNonZero, out=zr);
+}

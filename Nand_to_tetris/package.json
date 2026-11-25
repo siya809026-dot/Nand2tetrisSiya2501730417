@@ -1,0 +1,20 @@
+{
+  "name": "hack-computer-lab-capstone",
+  "version": "1.0.0",
+  "description": "Hack Computer Lab - Nand to Tetris ETCMTC301 Capstone Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js",
+    "assemble": "node assemble.js"
+  },
+  "keywords": [
+    "nand2tetris",
+    "hack-computer",
+    "assembler",
+    "cpu-emulator",
+    "krmu"
+  ],
+  "author": "Prithvi Saini (2501730041)",
+  "license": "ISC"
+}

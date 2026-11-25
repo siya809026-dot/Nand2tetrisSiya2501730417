@@ -1,0 +1,12 @@
+// Computer.hdl - Nand to Tetris Project 5
+// Student: Siya Singh (Roll: 2501730417, K=17)
+// K.R. Mangalam University - ETCMTC301 Capstone
+
+CHIP Computer {
+    IN reset;
+
+    PARTS:
+    ROM32K(address=pc, out=instruction);
+    CPU(inM=inM, instruction=instruction, reset=reset, outM=outM, writeM=writeM, addressM=addressM, pc=pc);
+    Memory(in=outM, load=writeM, address=addressM, out=inM);
+}

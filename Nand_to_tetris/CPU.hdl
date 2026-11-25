@@ -1,0 +1,83 @@
+// CPU.hdl - Nand to Tetris Project 5
+// Student: Siya Singh (Roll: 2501730417, K=17)
+// K.R. Mangalam University - ETCMTC301 Capstone
+
+CHIP CPU {
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Instruction decoding:
+    // instruction[15]: 0 -> A-instruction, 1 -> C-instruction
+    Not(in=instruction[15], out=isAInstr);
+    Not(in=isAInstr, out=isCInstr);
+
+    // 1. A-Register and Input Multiplexer
+    // A-Register is loaded if:
+    //  - It's an A-instruction (isAInstr == 1), OR
+    //  - It's a C-instruction and dest bit d1 (instruction[5]) is 1.
+    And(a=isCInstr, b=instruction[5], out=destA);
+    Or(a=isAInstr, b=destA, out=loadA);
+
+    // If A-instruction, input is instruction itself; if C-instruction, input is ALU output
+    Mux16(a=outALU, b=instruction, sel=isAInstr, out=inA);
+    ARegister(in=inA, load=loadA, out=outA, out[0..14]=addressM);
+
+    // 2. D-Register
+    // D-Register is loaded only if it's a C-instruction and dest bit d2 (instruction[4]) is 1.
+    And(a=isCInstr, b=instruction[4], out=loadD);
+    DRegister(in=outALU, load=loadD, out=outD);
+
+    // 3. ALU Y-Input Multiplexer (A or M)
+    // Selects between A-register and inM based on the 'a' bit (instruction[12])
+    Mux16(a=outA, b=inM, sel=instruction[12], out=outAM);
+
+    // 4. ALU Operation
+    // Operates on D (x) and A/M (y) using control bits c1..c6 (instruction[11..6])
+    ALU(x=outD, y=outAM, 
+        zx=instruction[11], 
+        nx=instruction[10], 
+        zy=instruction[9], 
+        ny=instruction[8], 
+        f=instruction[7], 
+        no=instruction[6], 
+        out=outALU, 
+        out=outM, 
+        zr=zrFlag, 
+        ng=ngFlag);
+
+    // 5. Memory Write Control (writeM)
+    // Only write to memory if it's a C-instruction and dest bit d3 (instruction[3]) is 1.
+    And(a=isCInstr, b=instruction[3], out=writeM);
+
+    // 6. Jump Logic Evaluation
+    // j1 (instruction[2]): jump if negative (ngFlag == 1)
+    // j2 (instruction[1]): jump if zero (zrFlag == 1)
+    // j3 (instruction[0]): jump if positive (!ngFlag && !zrFlag)
+    Or(a=zrFlag, b=ngFlag, out=zrOrNg);
+    Not(in=zrOrNg, out=isPositive);
+
+    And(a=instruction[2], b=ngFlag, out=jumpNeg);
+    And(a=instruction[1], b=zrFlag, out=jumpZero);
+    And(a=instruction[0], b=isPositive, out=jumpPos);
+
+    Or(a=jumpNeg, b=jumpZero, out=jumpCondition1);
+    Or(a=jumpCondition1, b=jumpPos, out=anyJump);
+
+    // Only jump if it's a C-instruction
+    And(a=isCInstr, b=anyJump, out=jumpConditionMet);
+
+    // 7. Program Counter (PC)
+    // If jumpConditionMet: load A-register into PC
+    // Else: increment PC
+    Not(in=jumpConditionMet, out=incPC);
+    PC(in=outA, load=jumpConditionMet, inc=incPC, reset=reset, out[0..14]=pc);
+}
