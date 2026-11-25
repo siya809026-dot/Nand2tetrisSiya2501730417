@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: hack-computer-lab-siya
+    env: static
+    staticPublishPath: ./
+    buildCommand: ""
